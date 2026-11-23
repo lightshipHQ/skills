@@ -21,9 +21,9 @@ Authorization: Bearer <API key>
 Content-Type: application/json
 ```
 
-Use a **personal (user-owned) WorkOS API key** with `ingestion:write`, or an **organization API key**. Organization keys remain supported for existing integrations without explicit permission grants. User session bearer tokens (JWTs) are not API keys and are not accepted for ingestion. LightShip determines the organization from the verified key; `tenant_id` and `organization_id` telemetry attributes do not change ownership or replace authentication.
+Use a **Lightship API key** with `ingestion:write`. The key determines the workspace; telemetry attributes cannot change it.
 
-For personal keys, attachment uploads require `attachments:write`; retrieving attachment metadata or content requires `attachments:read`. Retrieving traces for verification requires `traces:read`. A key can successfully ingest traces or upload images while lacking permission to read them back. Report that verification limitation separately from ingestion acceptance.
+Image uploads also need `attachments:write`. To verify traces and images through the API, the key needs `traces:read` and `attachments:read`. If read access is missing, report ingestion acceptance separately from verification.
 
 Configure the OTLP/HTTP trace exporter with the supplied full traces URL. Send an OTLP `ExportTraceServiceRequest` using either `application/json` or `application/x-protobuf`. Keep each request body within **4 MiB**; configure smaller batches when necessary.
 
@@ -126,8 +126,8 @@ Re-sending a batch is **not an update**. Repeated spans can appear in queries an
 
 | Response | Check |
 | --- | --- |
-| `401` | Valid WorkOS API key and Bearer authentication; session JWTs are not accepted for ingestion. |
-| `403` | Personal API key permissions: `ingestion:write` for traces, `attachments:write` for uploads, `traces:read` / `attachments:read` for verification. |
+| `401` | Valid Lightship API key and Bearer authentication. |
+| `403` | API key permissions: `ingestion:write` for traces, `attachments:write` for uploads, `traces:read` / `attachments:read` for verification. |
 | `400` | OTLP payload structure and field values. |
 | `415` | Supported content type matching the actual encoding. |
 | `413` | Request body exceeds the 4 MiB limit; reduce the batch size. |
