@@ -7,13 +7,15 @@ description: Use when setting up or troubleshooting trace ingestion into LightSh
 
 LightShip helps monitor agent behaviour using agents OTEL data. 
 
-Configure trace ingestion using the supplied LightShip endpoint and API key. Send a valid OTLP request and inspect the received trace before reporting successful ingestion.
+Configure trace ingestion using the Lightship endpoint and supplied API key. Send a valid OTLP request and inspect the received trace before reporting successful ingestion.
 
 ## 1. Establish the endpoint and authentication
 
-Use the full traces URL supplied in the setup prompt as `LIGHTSHIP_OTLP_TRACES_URL` and the API key supplied as `LIGHTSHIP_API_KEY`. Reuse supplied values and ask only for missing values; keep the key out of committed files and displayed output.
+Use `https://app.lightship.sh/otlp/v1/traces` as `LIGHTSHIP_OTLP_TRACES_URL` by default. If the user or setup prompt supplies a different endpoint, use that exact URL instead. Do not ask for an endpoint when none is supplied; use the default.
 
-Send requests to `${LIGHTSHIP_OTLP_TRACES_URL}` exactly as supplied. Supply the API key separately in the `Authorization` header, not in the URL or trace payload:
+Use the API key supplied as `LIGHTSHIP_API_KEY`. Reuse supplied values and ask only for a missing key; keep it out of committed files and displayed output.
+
+Send requests to `${LIGHTSHIP_OTLP_TRACES_URL}` without changing the selected URL. Supply the API key separately in the `Authorization` header, not in the URL or trace payload:
 
 ```http
 POST ${LIGHTSHIP_OTLP_TRACES_URL}
@@ -25,7 +27,7 @@ Use a **Lightship API key** with `ingestion:write`. The key determines the works
 
 Image uploads also need `attachments:write`. To verify traces and images through the API, the key needs `traces:read` and `attachments:read`. If read access is missing, report ingestion acceptance separately from verification.
 
-Configure the OTLP/HTTP trace exporter with the supplied full traces URL. Send an OTLP `ExportTraceServiceRequest` using either `application/json` or `application/x-protobuf`. Keep each request body within **4 MiB**; configure smaller batches when necessary.
+Configure the OTLP/HTTP trace exporter with the selected full traces URL. Send an OTLP `ExportTraceServiceRequest` using either `application/json` or `application/x-protobuf`. Keep each request body within **4 MiB**; configure smaller batches when necessary.
 
 ## 2. Set agent and customer identities
 
