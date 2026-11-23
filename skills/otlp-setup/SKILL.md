@@ -7,21 +7,23 @@ description: Use when setting up or troubleshooting trace ingestion into LightSh
 
 LightShip helps monitor agent behaviour using agents OTEL data. 
 
-Configure trace ingestion using the supplied LightShip endpoint and organization API key. Send a valid OTLP request and inspect the received trace before reporting successful ingestion.
+Configure trace ingestion using the supplied LightShip endpoint and API key. Send a valid OTLP request and inspect the received trace before reporting successful ingestion.
 
 ## 1. Establish the endpoint and authentication
 
-Use the full traces URL supplied in the setup prompt as `LIGHTSHIP_OTLP_TRACES_URL` and the organization API key supplied as `LIGHTSHIP_API_KEY`. Reuse supplied values and ask only for missing values; keep the key out of committed files and displayed output.
+Use the full traces URL supplied in the setup prompt as `LIGHTSHIP_OTLP_TRACES_URL` and the API key supplied as `LIGHTSHIP_API_KEY`. Reuse supplied values and ask only for missing values; keep the key out of committed files and displayed output.
 
-Send requests to `${LIGHTSHIP_OTLP_TRACES_URL}` exactly as supplied. Supply the organization API key separately in the `Authorization` header, not in the URL or trace payload:
+Send requests to `${LIGHTSHIP_OTLP_TRACES_URL}` exactly as supplied. Supply the API key separately in the `Authorization` header, not in the URL or trace payload:
 
 ```http
 POST ${LIGHTSHIP_OTLP_TRACES_URL}
-Authorization: Bearer <organization API key>
+Authorization: Bearer <API key>
 Content-Type: application/json
 ```
 
-Use a LightShip **organization API key**. User bearer tokens are not accepted for ingestion. LightShip determines the organization from the verified key; `tenant_id` and `organization_id` telemetry attributes do not change ownership or replace authentication.
+Use a **personal (user-owned) WorkOS API key** with `ingestion:write`, or an **organization API key**. Organization keys remain supported for existing integrations without explicit permission grants. User session bearer tokens (JWTs) are not API keys and are not accepted for ingestion. LightShip determines the organization from the verified key; `tenant_id` and `organization_id` telemetry attributes do not change ownership or replace authentication.
+
+For personal keys, attachment uploads require `attachments:write`; retrieving attachment metadata or content requires `attachments:read`. Retrieving traces for verification requires `traces:read`. A key can successfully ingest traces or upload images while lacking permission to read them back. Report that verification limitation separately from ingestion acceptance.
 
 Configure the OTLP/HTTP trace exporter with the supplied full traces URL. Send an OTLP `ExportTraceServiceRequest` using either `application/json` or `application/x-protobuf`. Keep each request body within **4 MiB**; configure smaller batches when necessary.
 
@@ -124,7 +126,8 @@ Re-sending a batch is **not an update**. Repeated spans can appear in queries an
 
 | Response | Check |
 | --- | --- |
-| `401` | Organization API key and Bearer authentication. |
+| `401` | Valid WorkOS API key and Bearer authentication; session JWTs are not accepted for ingestion. |
+| `403` | Personal API key permissions: `ingestion:write` for traces, `attachments:write` for uploads, `traces:read` / `attachments:read` for verification. |
 | `400` | OTLP payload structure and field values. |
 | `415` | Supported content type matching the actual encoding. |
 | `413` | Request body exceeds the 4 MiB limit; reduce the batch size. |
